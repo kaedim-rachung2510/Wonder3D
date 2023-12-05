@@ -30,7 +30,7 @@ from diffusers.utils import deprecate, logging, randn_tensor
 from diffusers.pipelines.pipeline_utils import DiffusionPipeline
 from diffusers.pipelines.stable_diffusion import StableDiffusionPipelineOutput
 from diffusers.pipelines.stable_diffusion.safety_checker import StableDiffusionSafetyChecker
-from einops import rearrange, repeat
+
 
 logger = logging.get_logger(__name__)  # pylint: disable=invalid-name
 
@@ -77,7 +77,7 @@ class MVDiffusionImagePipeline(DiffusionPipeline):
         feature_extractor: CLIPImageProcessor,
         requires_safety_checker: bool = True,
         camera_embedding_type: str = 'e_de_da_sincos',
-        num_views: int = 6
+        num_views: int = 4
     ):
         super().__init__()
 
@@ -133,20 +133,6 @@ class MVDiffusionImagePipeline(DiffusionPipeline):
         self.camera_embedding_type: str = camera_embedding_type
         self.num_views: int = num_views
 
-        self.camera_embedding =  torch.tensor(
-            [[ 0.0000,  0.0000,  0.0000,  1.0000,  0.0000],
-            [ 0.0000, -0.2362,  0.8125,  1.0000,  0.0000],
-            [ 0.0000, -0.1686,  1.6934,  1.0000,  0.0000],
-            [ 0.0000,  0.5220,  3.1406,  1.0000,  0.0000],
-            [ 0.0000,  0.6904,  4.8359,  1.0000,  0.0000],
-            [ 0.0000,  0.3733,  5.5859,  1.0000,  0.0000],
-            [ 0.0000,  0.0000,  0.0000,  0.0000,  1.0000],
-            [ 0.0000, -0.2362,  0.8125,  0.0000,  1.0000],
-            [ 0.0000, -0.1686,  1.6934,  0.0000,  1.0000],
-            [ 0.0000,  0.5220,  3.1406,  0.0000,  1.0000],
-            [ 0.0000,  0.6904,  4.8359,  0.0000,  1.0000],
-            [ 0.0000,  0.3733,  5.5859,  0.0000,  1.0000]], dtype=torch.float16)
-
     def _encode_image(self, image_pil, device, num_images_per_prompt, do_classifier_free_guidance):
         dtype = next(self.image_encoder.parameters()).dtype
 
@@ -169,7 +155,7 @@ class MVDiffusionImagePipeline(DiffusionPipeline):
             # to avoid doing two forward passes
             image_embeddings = torch.cat([negative_prompt_embeds, image_embeddings])
         
-        image_pt = torch.stack([TF.to_tensor(img) for img in image_pil], dim=0).to(device).to(dtype)
+        image_pt = torch.stack([TF.to_tensor(img) for img in image_pil], dim=0).to(device)
         image_pt = image_pt * 2.0 - 1.0
         image_latents = self.vae.encode(image_pt).latent_dist.mode() * self.vae.config.scaling_factor
         # Note: repeat differently from official pipelines
@@ -302,7 +288,7 @@ class MVDiffusionImagePipeline(DiffusionPipeline):
         # elevation_cond: torch.FloatTensor,
         # elevation: torch.FloatTensor,
         # azimuth: torch.FloatTensor, 
-        camera_embedding: Optional[torch.FloatTensor]=None,
+        camera_embedding: torch.FloatTensor,
         height: Optional[int] = None,
         width: Optional[int] = None,
         num_inference_steps: int = 50,
@@ -398,15 +384,10 @@ class MVDiffusionImagePipeline(DiffusionPipeline):
         # 2. Define call parameters
         if isinstance(image, list):
             batch_size = len(image)
-        elif isinstance(image, torch.Tensor):
+        else:
             batch_size = image.shape[0]
-            assert batch_size >= self.num_views and batch_size % self.num_views == 0
-        elif isinstance(image, PIL.Image.Image):
-            image = [image]*self.num_views*2
-            batch_size = self.num_views*2
-    
+        assert batch_size >= self.num_views and batch_size % self.num_views == 0
         device = self._execution_device
-        dtype = self.vae.dtype
         # here `guidance_scale` is defined analog to the guidance weight `w` of equation (2)
         # of the Imagen paper: https://arxiv.org/pdf/2205.11487.pdf . `guidance_scale = 1`
         # corresponds to doing no classifier free guidance.
@@ -429,12 +410,7 @@ class MVDiffusionImagePipeline(DiffusionPipeline):
 
         # assert len(elevation_cond) == batch_size and len(elevation) == batch_size and len(azimuth) == batch_size
         # camera_embeddings = self.prepare_camera_condition(elevation_cond, elevation, azimuth, do_classifier_free_guidance=do_classifier_free_guidance, num_images_per_prompt=num_images_per_prompt)
-        
-        if camera_embedding is not None:
-            assert len(camera_embedding) == batch_size
-        else:
-            camera_embedding = self.camera_embedding.to(dtype)
-            camera_embedding = repeat(camera_embedding, "Nv Nce -> (B Nv) Nce", B=batch_size//len(camera_embedding))
+        assert len(camera_embedding) == batch_size
         camera_embeddings = self.prepare_camera_embedding(camera_embedding, do_classifier_free_guidance=do_classifier_free_guidance, num_images_per_prompt=num_images_per_prompt)
 
         # 4. Prepare timesteps
@@ -506,4 +482,3 @@ class MVDiffusionImagePipeline(DiffusionPipeline):
             return (image, has_nsfw_concept)
 
         return StableDiffusionPipelineOutput(images=image, nsfw_content_detected=has_nsfw_concept)
-    

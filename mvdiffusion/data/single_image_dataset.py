@@ -119,7 +119,10 @@ class SingleImageDataset(Dataset):
                 file_list = filepaths
 
             # Filter the files that end with .png or .jpg
-            self.file_list = [file for file in file_list if file.endswith(('.png', '.jpg'))]
+            valid_image_extensions = ('.png', '.jpg', '.jpeg')
+            self.file_list = [file for file in file_list if file.endswith(valid_image_extensions)]
+            if not len(self.file_list):
+                raise Exception("No image files with extensions {valid_image_extensions}.")
         else:
             self.file_list = None
 
@@ -301,5 +304,3 @@ class SingleImageDataset(Dataset):
         }
 
         return out
-
-        

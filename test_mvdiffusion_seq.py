@@ -1,53 +1,29 @@
 import argparse
-import datetime
-import logging
-import inspect
-import math
 import os
-from typing import Dict, Optional, Tuple, List
-from omegaconf import OmegaConf
+from typing import Dict, Optional, List
 from PIL import Image
-import cv2
-import numpy as np
 from dataclasses import dataclass
 from packaging import version
-import shutil
 from collections import defaultdict
 
 import torch
-import torch.nn.functional as F
 import torch.utils.checkpoint
-import torchvision.transforms.functional as TF
-from torchvision.utils import make_grid, save_image
+from torchvision.utils import save_image
 
-import transformers
-import accelerate
-from accelerate import Accelerator
-from accelerate.logging import get_logger
-from accelerate.utils import ProjectConfiguration, set_seed
+from accelerate.utils import set_seed
 
-import diffusers
-from diffusers import AutoencoderKL, DDPMScheduler, DDIMScheduler, StableDiffusionPipeline, UNet2DConditionModel
-from diffusers.optimization import get_scheduler
-from diffusers.training_utils import EMAModel
-from diffusers.utils import check_min_version, deprecate, is_wandb_available
+from diffusers import AutoencoderKL, DDIMScheduler
 from diffusers.utils.import_utils import is_xformers_available
 
 from tqdm.auto import tqdm
-from transformers import CLIPTextModel, CLIPTokenizer
 from transformers import CLIPImageProcessor, CLIPVisionModelWithProjection
 
 from mvdiffusion.models.unet_mv2d_condition import UNetMV2DConditionModel
-
 from mvdiffusion.data.single_image_dataset import SingleImageDataset as MVDiffusionDataset
-
 from mvdiffusion.pipelines.pipeline_mvdiffusion_image import MVDiffusionImagePipeline
 
 from einops import rearrange
 from rembg import remove
-import pdb
-
-weight_dtype = torch.float16
 
 
 @dataclass
@@ -80,16 +56,22 @@ class TestConfig:
     cond_on_normals: bool
     cond_on_colors: bool
 
+def log_validation(dataloader, vae, feature_extractor, image_encoder, unet, cfg: TestConfig, weight_dtype, name, save_dir):
 
-def log_validation(dataloader, pipeline, cfg: TestConfig, weight_dtype, name, save_dir):
+    VIEWS = get_views(cfg.num_views)
 
+    pipeline = MVDiffusionImagePipeline(
+        image_encoder=image_encoder, feature_extractor=feature_extractor, vae=vae, unet=unet, safety_checker=None,
+        scheduler=DDIMScheduler.from_pretrained(cfg.pretrained_model_name_or_path, subfolder="scheduler"),
+        **cfg.pipe_kwargs
+    )
 
     pipeline.set_progress_bar_config(disable=True)
 
     if cfg.seed is None:
         generator = None
     else:
-        generator = torch.Generator(device=pipeline.device).manual_seed(cfg.seed)
+        generator = torch.Generator(device=unet.device).manual_seed(cfg.seed)
     
     images_cond, images_pred = [], defaultdict(list)
     for i, batch in tqdm(enumerate(dataloader)):
@@ -120,8 +102,8 @@ def log_validation(dataloader, pipeline, cfg: TestConfig, weight_dtype, name, sa
 
                 # pdb.set_trace()
                 for i in range(bsz):
-                    scene = os.path.basename(filename[i])
-                    print(scene)
+                    scene = os.path.basename(filename[i]).split(".")[0]
+                    # print(scene)
                     scene_dir = os.path.join(cur_dir, scene)
                     outs_dir = os.path.join(scene_dir, "outs")
                     masked_outs_dir = os.path.join(scene_dir, "masked_outs")
@@ -145,8 +127,6 @@ def log_validation(dataloader, pipeline, cfg: TestConfig, weight_dtype, name, sa
                         save_image_numpy(rm_pred, os.path.join(scene_dir, out_filename))
     torch.cuda.empty_cache()
 
-
-
 def save_image(tensor, fp):
     ndarr = tensor.mul(255).add_(0.5).clamp_(0, 255).permute(1, 2, 0).to("cpu", torch.uint8).numpy()
     # pdb.set_trace()
@@ -158,14 +138,22 @@ def save_image_numpy(ndarr, fp):
     im = Image.fromarray(ndarr)
     im.save(fp)
 
-def log_validation_joint(dataloader, pipeline, cfg: TestConfig, weight_dtype, name, save_dir):
+def log_validation_joint(dataloader, vae, feature_extractor, image_encoder, unet, cfg: TestConfig, weight_dtype, name, save_dir):
+
+    VIEWS = get_views(cfg.num_views)
+
+    pipeline = MVDiffusionImagePipeline(
+        image_encoder=image_encoder, feature_extractor=feature_extractor, vae=vae, unet=unet, safety_checker=None,
+        scheduler=DDIMScheduler.from_pretrained(cfg.pretrained_model_name_or_path, subfolder="scheduler"),
+        **cfg.pipe_kwargs
+    )
 
     pipeline.set_progress_bar_config(disable=True)
 
     if cfg.seed is None:
         generator = None
     else:
-        generator = torch.Generator(device=pipeline.device).manual_seed(cfg.seed)
+        generator = torch.Generator(device=unet.device).manual_seed(cfg.seed)
     
     images_cond, normals_pred, images_pred = [], defaultdict(list), defaultdict(list)
     for i, batch in tqdm(enumerate(dataloader)):
@@ -227,24 +215,6 @@ def log_validation_joint(dataloader, pipeline, cfg: TestConfig, weight_dtype, na
 
     torch.cuda.empty_cache()
 
-
-def load_wonder3d_pipeline(cfg):
-
-    pipeline = MVDiffusionImagePipeline.from_pretrained(
-    cfg.pretrained_model_name_or_path,
-    torch_dtype=weight_dtype
-    )
-
-    # pipeline.to('cuda:0')
-    pipeline.unet.enable_xformers_memory_efficient_attention()
-
-
-    if torch.cuda.is_available():
-        pipeline.to('cuda:0')
-    # sys.main_lock = threading.Lock()
-    return pipeline
-
-
 def main(
     cfg: TestConfig
 ):
@@ -253,7 +223,12 @@ def main(
     if cfg.seed is not None:
         set_seed(cfg.seed)
 
-    pipeline = load_wonder3d_pipeline(cfg)
+    # Load scheduler, tokenizer and models.
+    # noise_scheduler = DDPMScheduler.from_pretrained(cfg.pretrained_model_name_or_path, subfolder="scheduler")
+    image_encoder = CLIPVisionModelWithProjection.from_pretrained(cfg.pretrained_model_name_or_path, subfolder="image_encoder", revision=cfg.revision)
+    feature_extractor = CLIPImageProcessor.from_pretrained(cfg.pretrained_model_name_or_path, subfolder="feature_extractor", revision=cfg.revision)
+    vae = AutoencoderKL.from_pretrained(cfg.pretrained_model_name_or_path, subfolder="vae", revision=cfg.revision)
+    unet = UNetMV2DConditionModel.from_pretrained_2d(cfg.pretrained_unet_path, subfolder="unet", revision=cfg.revision, **cfg.unet_from_pretrained_kwargs)
 
     if cfg.enable_xformers_memory_efficient_attention:
         if is_xformers_available():
@@ -261,11 +236,9 @@ def main(
 
             xformers_version = version.parse(xformers.__version__)
             if xformers_version == version.parse("0.0.16"):
-                print(
-                    "xFormers 0.0.16 cannot be used for training in some GPUs. If you observe problems during training, please update xFormers to at least 0.0.17. See https://huggingface.co/docs/diffusers/main/en/optimization/xformers for more details."
-                )
-            pipeline.unet.enable_xformers_memory_efficient_attention()
-            print("use xformers.")
+                print("[WARNING] xFormers 0.0.16 cannot be used for training in some GPUs. If you observe problems during training, please update xFormers to at least 0.0.17. See https://huggingface.co/docs/diffusers/main/en/optimization/xformers for more details.")
+            unet.enable_xformers_memory_efficient_attention()
+            # print("use xformers.")
         else:
             raise ValueError("xformers is not available. Make sure it is installed correctly")
 
@@ -280,13 +253,22 @@ def main(
         validation_dataset, batch_size=cfg.validation_batch_size, shuffle=False, num_workers=cfg.dataloader_num_workers
     )
 
+    weight_dtype = torch.float32
+    device = 'cuda'
+    # Move text_encode and vae to gpu and cast to weight_dtype
+    image_encoder.to(device, dtype=weight_dtype)
+    vae.to(device, dtype=weight_dtype)
+    unet.to(device, dtype=weight_dtype)
 
     os.makedirs(cfg.save_dir, exist_ok=True)
 
     if cfg.pred_type == 'joint':
         log_validation_joint(
                     validation_dataloader,
-                    pipeline,
+                    vae,
+                    feature_extractor,
+                    image_encoder,
+                    unet,
                     cfg,
                     weight_dtype,
                     'validation',
@@ -295,25 +277,35 @@ def main(
     else:
         log_validation(
                     validation_dataloader,
-                    pipeline,
+                    vae,
+                    feature_extractor,
+                    image_encoder,
+                    unet,
                     cfg,
                     weight_dtype,
                     'validation',
                     cfg.save_dir
                     )
     
-    
+def get_views(num_views):
+    VIEWS = []
+    if num_views == 6:
+        VIEWS = ['front', 'front_right', 'right', 'back', 'left', 'front_left']
+    elif num_views == 4:
+        VIEWS = ['front', 'right', 'back', 'left']
+    return VIEWS    
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--config', type=str, required=True)
     args, extras = parser.parse_known_args()
 
-    from utils.misc import load_config    
+    from utils.misc import load_config
+    from omegaconf import OmegaConf
 
     # parse YAML config to OmegaConf
     cfg = load_config(args.config, cli_args=extras)
-    print(cfg)
+    # print(cfg)
     schema = OmegaConf.structured(TestConfig)
     # cfg = OmegaConf.load(args.config)
     cfg = OmegaConf.merge(schema, cfg)
