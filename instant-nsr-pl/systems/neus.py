@@ -182,10 +182,12 @@ class NeuSSystem(BaseSystem):
             {'type': 'grayscale', 'img': out['depth'].view(H, W), 'kwargs': {}},
             {'type': 'rgb', 'img': out['comp_normal'].view(H, W, 3), 'kwargs': {'data_format': 'HWC', 'data_range': (-1, 1)}}
         ])
-        return {
+        pred = {
             'psnr': psnr,
             'index': batch['index']
         }
+        self.validation_step_outputs.append(pred)
+        return pred
           
     
     """
@@ -193,6 +195,21 @@ class NeuSSystem(BaseSystem):
     def validation_step_end(self, out):
         pass
     """
+    
+    def on_validation_epoch_end(self):
+        out = self.validation_step_outputs
+        if self.trainer.is_global_zero:
+            out_set = {}
+            for step_out in out:
+                # DP
+                if step_out['index'].ndim == 1:
+                    out_set[step_out['index'].item()] = {'psnr': step_out['psnr']}
+                # DDP
+                else:
+                    for oi, index in enumerate(step_out['index']):
+                        out_set[index[0].item()] = {'psnr': step_out['psnr'][oi]}
+            psnr = torch.mean(torch.stack([o['psnr'] for o in out_set.values()]))
+            self.log('val/psnr', psnr, prog_bar=True, rank_zero_only=True)         
     
     def validation_epoch_end(self, out):
         out = self.all_gather(out)

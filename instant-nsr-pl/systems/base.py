@@ -18,6 +18,7 @@ class BaseSystem(pl.LightningModule, SaverMixin):
         self.rank = get_rank()
         self.prepare()
         self.model = models.make(self.config.model.name, self.config.model)
+        self.validation_step_outputs = []
     
     def prepare(self):
         pass
@@ -95,6 +96,13 @@ class BaseSystem(pl.LightningModule, SaverMixin):
         pass
     """
     
+    def on_validation_epoch_end(self):
+        """
+        Gather metrics from all devices, compute mean.
+        Purge repeated results using data index.
+        """
+        raise NotImplementedError
+    
     def validation_epoch_end(self, out):
         """
         Gather metrics from all devices, compute mean.
@@ -125,4 +133,3 @@ class BaseSystem(pl.LightningModule, SaverMixin):
                 'lr_scheduler': parse_scheduler(self.config.system.scheduler, optim),
             })
         return ret
-
