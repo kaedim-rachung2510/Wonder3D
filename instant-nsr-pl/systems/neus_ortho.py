@@ -259,16 +259,16 @@ class OrthoNeuSSystem(BaseSystem):
         out = self(batch)
         psnr = self.criterions['psnr'](out['comp_rgb_full'].to(batch['rgb']), batch['rgb'])
         W, H = self.dataset.img_wh
-        self.save_image_grid(f"it{self.global_step}-{batch['index'][0].item()}.png", [
-            {'type': 'rgb', 'img': batch['rgb'].view(H, W, 3), 'kwargs': {'data_format': 'HWC'}},
-            {'type': 'rgb', 'img': out['comp_rgb_full'].view(H, W, 3), 'kwargs': {'data_format': 'HWC'}}
-        ] + ([
-            {'type': 'rgb', 'img': out['comp_rgb_bg'].view(H, W, 3), 'kwargs': {'data_format': 'HWC'}},
-            {'type': 'rgb', 'img': out['comp_rgb'].view(H, W, 3), 'kwargs': {'data_format': 'HWC'}},
-        ] if self.config.model.learned_background else []) + [
-            {'type': 'grayscale', 'img': out['depth'].view(H, W), 'kwargs': {}},
-            {'type': 'rgb', 'img': out['comp_normal'].view(H, W, 3), 'kwargs': {'data_format': 'HWC', 'data_range': (-1, 1)}}
-        ])
+        # self.save_image_grid(f"it{self.global_step}-{batch['index'][0].item()}.png", [
+        #     {'type': 'rgb', 'img': batch['rgb'].view(H, W, 3), 'kwargs': {'data_format': 'HWC'}},
+        #     {'type': 'rgb', 'img': out['comp_rgb_full'].view(H, W, 3), 'kwargs': {'data_format': 'HWC'}}
+        # ] + ([
+        #     {'type': 'rgb', 'img': out['comp_rgb_bg'].view(H, W, 3), 'kwargs': {'data_format': 'HWC'}},
+        #     {'type': 'rgb', 'img': out['comp_rgb'].view(H, W, 3), 'kwargs': {'data_format': 'HWC'}},
+        # ] if self.config.model.learned_background else []) + [
+        #     {'type': 'grayscale', 'img': out['depth'].view(H, W), 'kwargs': {}},
+        #     {'type': 'rgb', 'img': out['comp_normal'].view(H, W, 3), 'kwargs': {'data_format': 'HWC', 'data_range': (-1, 1)}}
+        # ])
         pred = {
             'psnr': psnr,
             'index': batch['index']
@@ -319,16 +319,16 @@ class OrthoNeuSSystem(BaseSystem):
         out = self(batch)
         psnr = self.criterions['psnr'](out['comp_rgb_full'].to(batch['rgb']), batch['rgb'])
         W, H = self.dataset.img_wh
-        self.save_image_grid(f"it{self.global_step}-test/{batch['index'][0].item()}.png", [
-            {'type': 'rgb', 'img': batch['rgb'].view(H, W, 3), 'kwargs': {'data_format': 'HWC'}},
-            {'type': 'rgb', 'img': out['comp_rgb_full'].view(H, W, 3), 'kwargs': {'data_format': 'HWC'}}
-        ] + ([
-            {'type': 'rgb', 'img': out['comp_rgb_bg'].view(H, W, 3), 'kwargs': {'data_format': 'HWC'}},
-            {'type': 'rgb', 'img': out['comp_rgb'].view(H, W, 3), 'kwargs': {'data_format': 'HWC'}},
-        ] if self.config.model.learned_background else []) + [
-            {'type': 'grayscale', 'img': out['depth'].view(H, W), 'kwargs': {}},
-            {'type': 'rgb', 'img': out['comp_normal'].view(H, W, 3), 'kwargs': {'data_format': 'HWC', 'data_range': (-1, 1)}}
-        ])
+        # self.save_image_grid(f"it{self.global_step}-test/{batch['index'][0].item()}.png", [
+        #     {'type': 'rgb', 'img': batch['rgb'].view(H, W, 3), 'kwargs': {'data_format': 'HWC'}},
+        #     {'type': 'rgb', 'img': out['comp_rgb_full'].view(H, W, 3), 'kwargs': {'data_format': 'HWC'}}
+        # ] + ([
+        #     {'type': 'rgb', 'img': out['comp_rgb_bg'].view(H, W, 3), 'kwargs': {'data_format': 'HWC'}},
+        #     {'type': 'rgb', 'img': out['comp_rgb'].view(H, W, 3), 'kwargs': {'data_format': 'HWC'}},
+        # ] if self.config.model.learned_background else []) + [
+        #     {'type': 'grayscale', 'img': out['depth'].view(H, W), 'kwargs': {}},
+        #     {'type': 'rgb', 'img': out['comp_normal'].view(H, W, 3), 'kwargs': {'data_format': 'HWC', 'data_range': (-1, 1)}}
+        # ])
         return {
             'psnr': psnr,
             'index': batch['index']
@@ -367,7 +367,8 @@ class OrthoNeuSSystem(BaseSystem):
         mesh = self.model.export(self.config.export)
         # pdb.set_trace()
         self.save_mesh(
-            f"it{self.global_step}-{self.config.model.geometry.isosurface.method}{self.config.model.geometry.isosurface.resolution}.obj",
+            f"mesh.obj",
+            # f"it{self.global_step}-{self.config.model.geometry.isosurface.method}{self.config.model.geometry.isosurface.resolution}.obj",
             ortho_scale=self.config.export.ortho_scale,
             **mesh
         )        

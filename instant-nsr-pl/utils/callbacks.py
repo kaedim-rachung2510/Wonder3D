@@ -88,6 +88,7 @@ class ConfigSnapshotCallback(VersionedCallback):
         shutil.copyfile(self.config.cmd_args['config'], os.path.join(self.savedir, 'raw.yaml'))
 
     def on_fit_start(self, trainer, pl_module):
+        return
         self.save_config_snapshot()
 
 

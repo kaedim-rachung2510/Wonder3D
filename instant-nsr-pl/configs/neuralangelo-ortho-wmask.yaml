@@ -1,12 +1,13 @@
-name: ${basename:${dataset.scene}}
+# name: mesh-ortho-${basename:${dataset.scene}}
+name: reconstruction
 tag: ""
 seed: 42
 
 dataset:
   name: ortho
-  root_dir: /home/xiaoxiao/Workplace/wonder3Dplus/outputs/joint-twice/aigc/cropsize-224-cfg1.0
+  root_dir: ./outputs/
   cam_pose_dir: null
-  scene: scene_name
+  scene: hallucinations
   imSize: [1024, 1024]  # should use larger res, otherwise the exported mesh has wrong colors
   camera_type: ortho
   apply_mask: true
@@ -138,7 +139,7 @@ trainer:
   max_steps: 3000
   log_every_n_steps: 100
   num_sanity_val_steps: 0
-  val_check_interval: 4000
+  val_check_interval: 3000
   limit_train_batches: 1.0
   limit_val_batches: 2
   enable_progress_bar: true

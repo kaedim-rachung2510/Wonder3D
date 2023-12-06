@@ -1,5 +1,9 @@
 import pytorch_lightning as pl
-
+import os
+import sys
+parent_path = os.path.abspath(os.path.join(__file__, "..", ".."))
+sys.path.append(parent_path)
+print(parent_path)
 import models
 from systems.utils import parse_optimizer, parse_scheduler, update_module_step
 from utils.mixins import SaverMixin

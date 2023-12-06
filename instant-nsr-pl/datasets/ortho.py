@@ -192,7 +192,7 @@ class OrthoDatasetBase():
         self.view_weights = self.view_weights.view(-1,1,1).repeat(1, self.h, self.w)
 
         if self.config.cam_pose_dir is None:
-            self.cam_pose_dir = "./datasets/fixed_poses"
+            self.cam_pose_dir = "python/Wonder3D/instant-nsr-pl/datasets/fixed_poses"
         else:
             self.cam_pose_dir = self.config.cam_pose_dir
             
