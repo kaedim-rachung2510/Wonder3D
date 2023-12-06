@@ -18,9 +18,12 @@ from diffusers.utils.import_utils import is_xformers_available
 from tqdm.auto import tqdm
 from transformers import CLIPImageProcessor, CLIPVisionModelWithProjection
 
-from mvdiffusion.models.unet_mv2d_condition import UNetMV2DConditionModel
-from mvdiffusion.data.single_image_dataset import SingleImageDataset as MVDiffusionDataset
-from mvdiffusion.pipelines.pipeline_mvdiffusion_image import MVDiffusionImagePipeline
+import sys
+parent_path = os.path.abspath(os.path.join(__file__, ".."))
+sys.path.append(parent_path)
+from Wonder3D.mvdiffusion.models.unet_mv2d_condition import UNetMV2DConditionModel
+from Wonder3D.mvdiffusion.data.single_image_dataset import SingleImageDataset as MVDiffusionDataset
+from Wonder3D.mvdiffusion.pipelines.pipeline_mvdiffusion_image import MVDiffusionImagePipeline
 
 from einops import rearrange
 from rembg import remove
@@ -190,7 +193,7 @@ def log_validation_joint(dataloader, vae, feature_extractor, image_encoder, unet
                 cur_dir = os.path.join(save_dir, f"cropsize-{cfg.validation_dataset.crop_size}-cfg{guidance_scale:.1f}")
 
                 for i in range(bsz//num_views):
-                    scene = filename[i]
+                    scene = os.path.basename(filename[i]).split(".")[0]
                     scene_dir = os.path.join(cur_dir, scene)
                     normal_dir = os.path.join(scene_dir, "normals")
                     masked_colors_dir = os.path.join(scene_dir, "masked_colors")
