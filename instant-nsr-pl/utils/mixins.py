@@ -214,7 +214,7 @@ class SaverMixin():
             v_rgb = self.convert_data(v_rgb)
 
         if ortho_scale is not None:
-            print("ortho scale is: ", ortho_scale)
+            # print("ortho scale is: ", ortho_scale)
             v_pos = v_pos * ortho_scale * 0.5
 
         # change to front-facing

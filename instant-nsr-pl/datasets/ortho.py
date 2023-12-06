@@ -141,10 +141,10 @@ def load_a_prediction(root_dir, test_object, imSize, view_types, load_color=Fals
         normal_cam_cv = normal_opengl2opencv(normal)
 
         if normal_system == 'front':
-            print("the loaded normals are defined in the system of front view")
+            # print("the loaded normals are defined in the system of front view")
             normal_world = camNormal2worldNormal(inv_RT(RT_front_cv)[:3, :3], normal_cam_cv)
         elif normal_system == 'self':
-            print("the loaded normals are in their independent camera systems")
+            # print("the loaded normals are in their independent camera systems")
             normal_world = camNormal2worldNormal(inv_RT(RT_cv)[:3, :3], normal_cam_cv)
         all_normals.append(normal_cam_cv)
         all_normals_world.append(normal_world)

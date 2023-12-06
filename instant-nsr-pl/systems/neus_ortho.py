@@ -351,7 +351,7 @@ class OrthoNeuSSystem(BaseSystem):
                     for oi, index in enumerate(step_out['index']):
                         out_set[index[0].item()] = {'psnr': step_out['psnr'][oi]}
             psnr = torch.mean(torch.stack([o['psnr'] for o in out_set.values()]))
-            self.log('test/psnr', psnr, prog_bar=True, rank_zero_only=True)    
+            # self.log('test/psnr', psnr, prog_bar=True, rank_zero_only=True)    
 
             self.save_img_sequence(
                 f"it{self.global_step}-test",

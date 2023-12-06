@@ -232,7 +232,8 @@ class VolumeSDF(BaseImplicitGeometry):
                 grid_res = hg_conf.base_resolution * hg_conf.per_level_scale**(current_level - 1)
                 grid_size = 2 * self.config.radius / grid_res
                 if grid_size != self._finite_difference_eps:
-                    rank_zero_info(f"Update finite_difference_eps to {grid_size}")
+                    pass
+                    # rank_zero_info(f"Update finite_difference_eps to {grid_size}")
                 self._finite_difference_eps = grid_size
             else:
                 raise ValueError(f"Unknown finite_difference_eps={self.finite_difference_eps}")

@@ -34,7 +34,7 @@ class VanillaFrequency(nn.Module):
             self.mask = torch.ones(self.N_freqs, dtype=torch.float32)
         else:
             self.mask = (1. - torch.cos(math.pi * (global_step / self.n_masking_step * self.N_freqs - torch.arange(0, self.N_freqs)).clamp(0, 1))) / 2.
-            rank_zero_debug(f'Update mask: {global_step}/{self.n_masking_step} {self.mask}')
+            # rank_zero_debug(f'Update mask: {global_step}/{self.n_masking_step} {self.mask}')
 
 
 class ProgressiveBandHashGrid(nn.Module):
@@ -60,7 +60,8 @@ class ProgressiveBandHashGrid(nn.Module):
     def update_step(self, epoch, global_step):
         current_level = min(self.start_level + max(global_step - self.start_step, 0) // self.update_steps, self.n_level)
         if current_level > self.current_level:
-            rank_zero_info(f'Update grid level to {current_level}')
+            pass
+            # rank_zero_info(f'Update grid level to {current_level}')
         self.current_level = current_level
         self.mask[:self.current_level * self.n_features_per_level] = 1.
 
