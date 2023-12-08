@@ -10,9 +10,9 @@ import torchvision.transforms.functional as TF
 
 import pytorch_lightning as pl
 
-import datasets
-from models.ray_utils import get_ray_directions
-from utils.misc import get_rank
+import Wonder3D.instant_nsr_pl.datasets as datasets
+from Wonder3D.instant_nsr_pl.models.ray_utils import get_ray_directions
+from Wonder3D.instant_nsr_pl.utils.misc import get_rank
 
 
 class BlenderDatasetBase():

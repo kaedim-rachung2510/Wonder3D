@@ -145,7 +145,7 @@ class Dataset:
 
         self.normal_system = conf['normal_system']
         
-        self.cam_pose_dir = "python/Wonder3D/models/fixed_poses/"
+        self.cam_pose_dir = "./Wonder3D/models/fixed_poses/"
 
         if self.num_views == 4:
             view_types = ['front', 'right', 'back', 'left']

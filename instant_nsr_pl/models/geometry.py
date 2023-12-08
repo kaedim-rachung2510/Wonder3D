@@ -5,12 +5,12 @@ import torch.nn.functional as F
 
 from pytorch_lightning.utilities.rank_zero import rank_zero_info
 
-import models
-from models.base import BaseModel
-from models.utils import scale_anything, get_activation, cleanup, chunk_batch
-from models.network_utils import get_encoding, get_mlp, get_encoding_with_network
-from utils.misc import get_rank
-from systems.utils import update_module_step
+import Wonder3D.instant_nsr_pl.models as models
+from Wonder3D.instant_nsr_pl.models.base import BaseModel
+from Wonder3D.instant_nsr_pl.models.utils import scale_anything, get_activation, cleanup, chunk_batch
+from Wonder3D.instant_nsr_pl.models.network_utils import get_encoding, get_mlp, get_encoding_with_network
+from Wonder3D.instant_nsr_pl.utils.misc import get_rank
+from Wonder3D.instant_nsr_pl.systems.utils import update_module_step
 from nerfacc import ContractionType
 
 

@@ -10,11 +10,11 @@ import torchvision.transforms.functional as TF
 
 import pytorch_lightning as pl
 
-import datasets
-from datasets.colmap_utils import \
+import Wonder3D.instant_nsr_pl.datasets as datasets
+from Wonder3D.instant_nsr_pl.datasets.colmap_utils import \
     read_cameras_binary, read_images_binary, read_points3d_binary
-from models.ray_utils import get_ray_directions
-from utils.misc import get_rank
+from Wonder3D.instant_nsr_pl.models.ray_utils import get_ray_directions
+from Wonder3D.instant_nsr_pl.utils.misc import get_rank
 
 
 def get_center(pts):

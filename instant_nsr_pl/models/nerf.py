@@ -4,10 +4,10 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-import models
-from models.base import BaseModel
-from models.utils import chunk_batch
-from systems.utils import update_module_step
+import Wonder3D.instant_nsr_pl.models as models
+from Wonder3D.instant_nsr_pl.models.base import BaseModel
+from Wonder3D.instant_nsr_pl.models.utils import chunk_batch
+from Wonder3D.instant_nsr_pl.systems.utils import update_module_step
 from nerfacc import ContractionType, OccupancyGrid, ray_marching, render_weight_from_density, accumulate_along_rays
 
 

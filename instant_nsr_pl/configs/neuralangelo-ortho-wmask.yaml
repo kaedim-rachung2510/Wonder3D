@@ -1,13 +1,13 @@
-# name: mesh-ortho-${basename:${dataset.scene}}
-name: reconstruction
+name: mesh-ortho-${basename:${dataset.scene}}
 tag: ""
 seed: 42
+checkpoint_path: null
 
 dataset:
   name: ortho
   root_dir: ./outputs/
   cam_pose_dir: null
-  scene: hallucinations
+  scene: scene_name
   imSize: [1024, 1024]  # should use larger res, otherwise the exported mesh has wrong colors
   camera_type: ortho
   apply_mask: true

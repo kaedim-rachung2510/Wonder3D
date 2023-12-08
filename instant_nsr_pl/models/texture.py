@@ -1,10 +1,10 @@
 import torch
 import torch.nn as nn
 
-import models
-from models.utils import get_activation
-from models.network_utils import get_encoding, get_mlp
-from systems.utils import update_module_step
+import Wonder3D.instant_nsr_pl.models as models
+from Wonder3D.instant_nsr_pl.models.utils import get_activation
+from Wonder3D.instant_nsr_pl.models.network_utils import get_encoding, get_mlp
+from Wonder3D.instant_nsr_pl.systems.utils import update_module_step
 
 
 @models.register('volume-radiance')

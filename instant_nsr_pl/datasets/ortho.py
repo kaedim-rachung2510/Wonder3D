@@ -12,9 +12,9 @@ import torchvision.transforms.functional as TF
 
 import pytorch_lightning as pl
 
-import datasets
-from models.ray_utils import get_ortho_ray_directions_origins, get_ortho_rays, get_ray_directions
-from utils.misc import get_rank
+import Wonder3D.instant_nsr_pl.datasets as datasets
+from Wonder3D.instant_nsr_pl.models.ray_utils import get_ortho_ray_directions_origins, get_ortho_rays, get_ray_directions
+from Wonder3D.instant_nsr_pl.utils.misc import get_rank
 
 from glob import glob
 import PIL.Image
@@ -74,7 +74,7 @@ def normal_opengl2opencv(normal):
     R_bcam2cv = np.array([1, -1, -1], np.float32)
     normal_cv = normal * R_bcam2cv[None, None, :]
 
-    print(np.shape(normal_cv))
+    # print(np.shape(normal_cv))
 
     return normal_cv
 
@@ -101,7 +101,7 @@ def load_a_prediction(root_dir, test_object, imSize, view_types, load_color=Fals
     RT_front = np.loadtxt(glob(os.path.join(cam_pose_dir, '*_%s_RT.txt'%( 'front')))[0])   # world2cam matrix
     RT_front_cv = RT_opengl2opencv(RT_front)   # convert normal from opengl to opencv
     for idx, view in enumerate(view_types):
-        print(os.path.join(root_dir,test_object))
+        # print(os.path.join(root_dir,test_object))
         normal_filepath = os.path.join(root_dir, test_object, 'normals_000_%s.png'%( view))
         # Load key frame
         if load_color:  # use bgr
@@ -111,7 +111,7 @@ def load_a_prediction(root_dir, test_object, imSize, view_types, load_color=Fals
         mask = normal[:, :, 3]
         normal = normal[:, :, :3]
 
-        color_mask = np.array(PIL.Image.open(os.path.join(root_dir,test_object, 'masked_colors/rgb_000_%s.png'%( view))).resize(imSize))[:, :, 3]
+        color_mask = np.array(PIL.Image.open(os.path.join(root_dir,test_object, 'rgb_000_%s.png'%( view))).resize(imSize))[:, :, 3]
         invalid_color_mask = color_mask < 255*0.5
         threshold =  np.ones_like(image[:, :, 0]) * 250
         invalid_white_mask = (image[:, :, 0] > threshold) & (image[:, :, 1] > threshold) & (image[:, :, 2] > threshold)
@@ -192,7 +192,7 @@ class OrthoDatasetBase():
         self.view_weights = self.view_weights.view(-1,1,1).repeat(1, self.h, self.w)
 
         if self.config.cam_pose_dir is None:
-            self.cam_pose_dir = "python/Wonder3D/instant-nsr-pl/datasets/fixed_poses"
+            self.cam_pose_dir = "./Wonder3D/instant_nsr_pl/datasets/fixed_poses"
         else:
             self.cam_pose_dir = self.config.cam_pose_dir
             
