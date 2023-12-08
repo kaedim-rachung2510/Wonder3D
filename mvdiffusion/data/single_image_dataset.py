@@ -137,7 +137,7 @@ class SingleImageDataset(Dataset):
             self.all_alphas.append(alpha)
         else:
             for file in self.file_list:
-                print(os.path.join(self.root_dir, file))
+                # print(os.path.join(self.root_dir, file))
                 image, alpha = self.load_image(os.path.join(self.root_dir, file), bg_color, return_type='pt')
                 self.all_images.append(image)
                 self.all_alphas.append(alpha)
@@ -277,8 +277,8 @@ class SingleImageDataset(Dataset):
         img_tensors_in = torch.stack(img_tensors_in, dim=0).float() # (Nv, 3, H, W)
         alpha_tensors_in = torch.stack(alpha_tensors_in, dim=0).float() # (Nv, 3, H, W)
 
-        elevations = torch.as_tensor(elevations).float().squeeze(1)
-        azimuths = torch.as_tensor(azimuths).float().squeeze(1)
+        elevations = torch.as_tensor(np.array(elevations)).float().squeeze(1)
+        azimuths = torch.as_tensor(np.array(azimuths)).float().squeeze(1)
         elevations_cond = torch.as_tensor([0] * self.num_views).float()
 
         normal_class = torch.tensor([1, 0]).float()

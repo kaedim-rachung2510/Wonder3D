@@ -66,6 +66,7 @@ def log_validation(dataloader, vae, feature_extractor, image_encoder, unet, cfg:
     pipeline = MVDiffusionImagePipeline(
         image_encoder=image_encoder, feature_extractor=feature_extractor, vae=vae, unet=unet, safety_checker=None,
         scheduler=DDIMScheduler.from_pretrained(cfg.pretrained_model_name_or_path, subfolder="scheduler"),
+        requires_safety_checker=False,
         **cfg.pipe_kwargs
     )
 
@@ -101,12 +102,12 @@ def log_validation(dataloader, vae, feature_extractor, image_encoder, unet, cfg:
                     imgs_in, camera_embeddings, generator=generator, guidance_scale=guidance_scale, output_type='pt', num_images_per_prompt=1, **cfg.pipe_validation_kwargs
                 ).images
                 images_pred[f"{name}-sample_cfg{guidance_scale:.1f}"].append(out)
-                cur_dir = os.path.join(save_dir, "hallucinations")
+                # cur_dir = os.path.join(save_dir, "hallucinations")
 
                 # pdb.set_trace()
                 for i in range(bsz):
-                    scene = os.path.basename(filename[i]).split(".")[0]
-                    scene_dir = cur_dir
+                    scene = os.path.basename(filename[i])
+                    scene_dir = save_dir
                     outs_dir = os.path.join(scene_dir, "outs")
                     masked_outs_dir = os.path.join(scene_dir, "masked_outs")
                     os.makedirs(outs_dir, exist_ok=True)
@@ -129,11 +130,12 @@ def log_validation(dataloader, vae, feature_extractor, image_encoder, unet, cfg:
                         save_image_numpy(rm_pred, os.path.join(scene_dir, out_filename))
     torch.cuda.empty_cache()
 
-def save_image(tensor, fp):
+def save_image(tensor, fp=""):
     ndarr = tensor.mul(255).add_(0.5).clamp_(0, 255).permute(1, 2, 0).to("cpu", torch.uint8).numpy()
     # pdb.set_trace()
     im = Image.fromarray(ndarr)
-    im.save(fp)
+    if fp:
+        im.save(fp)
     return ndarr
 
 def save_image_numpy(ndarr, fp):
@@ -147,6 +149,7 @@ def log_validation_joint(dataloader, vae, feature_extractor, image_encoder, unet
     pipeline = MVDiffusionImagePipeline(
         image_encoder=image_encoder, feature_extractor=feature_extractor, vae=vae, unet=unet, safety_checker=None,
         scheduler=DDIMScheduler.from_pretrained(cfg.pretrained_model_name_or_path, subfolder="scheduler"),
+        requires_safety_checker=False,
         **cfg.pipe_kwargs
     )
 
@@ -189,14 +192,14 @@ def log_validation_joint(dataloader, vae, feature_extractor, image_encoder, unet
                 normals_pred = out[:bsz]
                 images_pred = out[bsz:]
 
-                cur_dir = os.path.join(save_dir, "hallucinations")
+                # cur_dir = os.path.join(save_dir, "hallucinations")
 
                 for i in range(bsz//num_views):
-                    scene_dir = cur_dir
-                    normal_dir = os.path.join(scene_dir, "normals")
-                    masked_colors_dir = os.path.join(scene_dir, "masked_colors")
-                    os.makedirs(normal_dir, exist_ok=True)
-                    os.makedirs(masked_colors_dir, exist_ok=True)
+                    scene_dir = save_dir
+                    # normal_dir = os.path.join(scene_dir, "normals")
+                    # masked_colors_dir = os.path.join(scene_dir, "masked_colors")
+                    # os.makedirs(normal_dir, exist_ok=True)
+                    # os.makedirs(masked_colors_dir, exist_ok=True)
                     for j in range(num_views):
                         view = VIEWS[j]
                         idx = i*num_views + j
@@ -205,14 +208,17 @@ def log_validation_joint(dataloader, vae, feature_extractor, image_encoder, unet
 
                         normal_filename = f"normals_000_{view}.png"
                         rgb_filename = f"rgb_000_{view}.png"
-                        normal = save_image(normal, os.path.join(normal_dir, normal_filename))
-                        color = save_image(color, os.path.join(scene_dir, rgb_filename))
+
+                        # normal = save_image(normal, os.path.join(normal_dir, normal_filename))
+                        # color = save_image(color, os.path.join(scene_dir, rgb_filename))
+                        normal = save_image(normal)
+                        color = save_image(color)
 
                         rm_normal = remove(normal)
                         rm_color = remove(color)
 
                         save_image_numpy(rm_normal, os.path.join(scene_dir, normal_filename))
-                        save_image_numpy(rm_color, os.path.join(masked_colors_dir, rgb_filename))
+                        save_image_numpy(rm_color, os.path.join(scene_dir, rgb_filename))
 
     torch.cuda.empty_cache()
 

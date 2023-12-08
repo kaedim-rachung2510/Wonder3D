@@ -65,7 +65,7 @@ def normal_opengl2opencv(normal):
     R_bcam2cv = np.array([1, -1, -1], np.float32)
     normal_cv = normal * R_bcam2cv[None, None, :]
 
-    print(np.shape(normal_cv))
+    # print(np.shape(normal_cv))
 
     return normal_cv
 
@@ -83,11 +83,11 @@ def load_a_prediction(root_dir, test_object, imSize, view_types, load_color=Fals
     all_masks = []
     all_poses = []
     all_w2cs = []
-    print(cam_pose_dir)
+    # print(cam_pose_dir)
     RT_front = np.loadtxt(glob(os.path.join(cam_pose_dir, '*_%s_RT.txt'%( 'front')))[0])   # world2cam matrix
     RT_front_cv = RT_opengl2opencv(RT_front)   # convert normal from opengl to opencv
     for idx, view in enumerate(view_types):
-        print(os.path.join(root_dir,test_object))
+        # print(os.path.join(root_dir,test_object))
         normal_filepath = os.path.join(root_dir,test_object, 'normals_000_%s.png'%( view))
         # Load key frame
         if load_color:  # use bgr
