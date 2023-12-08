@@ -11,9 +11,6 @@ from Wonder3D.instant_nsr_pl.systems.utils import update_module_step
 from nerfacc import ContractionType, OccupancyGrid, ray_marching, render_weight_from_density, render_weight_from_alpha, accumulate_along_rays
 from nerfacc.intersection import ray_aabb_intersect
 
-import pdb
-
-
 class VarianceNetwork(nn.Module):
     def __init__(self, config):
         super(VarianceNetwork, self).__init__()

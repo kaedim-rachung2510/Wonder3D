@@ -28,8 +28,6 @@ from diffusers.models.modeling_utils import ModelMixin
 from diffusers.utils.import_utils import is_xformers_available
 
 from einops import rearrange, repeat
-import pdb
-import random
 
 
 if is_xformers_available():

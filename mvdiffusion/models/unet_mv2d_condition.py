@@ -45,15 +45,12 @@ from diffusers.models.unet_2d_blocks import (
     UpBlock2D,
 )
 from diffusers.utils import (
-    CONFIG_NAME,
     DIFFUSERS_CACHE,
-    FLAX_WEIGHTS_NAME,
     HF_HUB_OFFLINE,
     SAFETENSORS_WEIGHTS_NAME,
     WEIGHTS_NAME,
     _add_variant,
     _get_model_file,
-    deprecate,
     is_accelerate_available,
     is_safetensors_available,
     is_torch_version,

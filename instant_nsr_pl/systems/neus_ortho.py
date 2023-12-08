@@ -1,19 +1,11 @@
 import torch
-import torch.nn as nn
 import torch.nn.functional as F
 from torch_efficient_distloss import flatten_eff_distloss
 
-import pytorch_lightning as pl
-from pytorch_lightning.utilities.rank_zero import rank_zero_info, rank_zero_debug
-
-import Wonder3D.instant_nsr_pl.models as models
-from Wonder3D.instant_nsr_pl.models.utils import cleanup
 from Wonder3D.instant_nsr_pl.models.ray_utils import get_ortho_rays
 import Wonder3D.instant_nsr_pl.systems as systems
 from Wonder3D.instant_nsr_pl.systems.base import BaseSystem
 from Wonder3D.instant_nsr_pl.systems.criterions import PSNR, binary_cross_entropy
-
-import pdb
 
 def ranking_loss(error, penalize_ratio=0.7, extra_weights=None , type='mean'):
     error, indices = torch.sort(error)

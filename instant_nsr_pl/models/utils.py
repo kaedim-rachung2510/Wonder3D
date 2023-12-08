@@ -2,7 +2,6 @@ import gc
 from collections import defaultdict
 
 import torch
-import torch.nn as nn
 import torch.nn.functional as F
 from torch.autograd import Function
 from torch.cuda.amp import custom_bwd, custom_fwd

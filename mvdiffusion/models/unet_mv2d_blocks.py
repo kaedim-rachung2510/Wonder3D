@@ -19,10 +19,7 @@ import torch.nn.functional as F
 from torch import nn
 
 from diffusers.utils import is_torch_version, logging
-from diffusers.models.attention import AdaGroupNorm
-from diffusers.models.attention_processor import Attention, AttnAddedKVProcessor, AttnAddedKVProcessor2_0
-from diffusers.models.dual_transformer_2d import DualTransformer2DModel
-from diffusers.models.resnet import Downsample2D, FirDownsample2D, FirUpsample2D, KDownsample2D, KUpsample2D, ResnetBlock2D, Upsample2D
+from diffusers.models.resnet import Downsample2D, ResnetBlock2D, Upsample2D
 from Wonder3D.mvdiffusion.models.transformer_mv2d import TransformerMV2DModel
 
 from diffusers.models.unet_2d_blocks import DownBlock2D, ResnetDownsampleBlock2D, AttnDownBlock2D, CrossAttnDownBlock2D, SimpleCrossAttnDownBlock2D, SkipDownBlock2D, AttnSkipDownBlock2D, DownEncoderBlock2D, AttnDownEncoderBlock2D, KDownBlock2D, KCrossAttnDownBlock2D

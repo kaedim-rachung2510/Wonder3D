@@ -1,8 +1,4 @@
 import pytorch_lightning as pl
-import os
-import sys
-parent_path = os.path.abspath(os.path.join(__file__, "..", ".."))
-sys.path.append(parent_path)
 import Wonder3D.instant_nsr_pl.models as models
 from Wonder3D.instant_nsr_pl.systems.utils import parse_optimizer, parse_scheduler, update_module_step
 from Wonder3D.instant_nsr_pl.utils.mixins import SaverMixin

@@ -1,15 +1,12 @@
 import torch
-import torch.nn.functional as F
 import cv2
 import numpy as np
 import os
 from glob import glob
-from icecream import ic
 from scipy.spatial.transform import Rotation as Rot
 from scipy.spatial.transform import Slerp
 import PIL.Image
 from glob import glob
-import pdb
 
 def camNormal2worldNormal(rot_c2w, camNormal):
     H,W,_ = camNormal.shape
