@@ -16,4 +16,4 @@ def make(name, config, load_from_checkpoint=None):
     return system
 
 
-from . import  neus, neus_ortho, neus_pinhole
+from . import neus_ortho

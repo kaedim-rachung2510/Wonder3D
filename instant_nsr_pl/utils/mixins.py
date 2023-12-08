@@ -10,9 +10,6 @@ import json
 
 import torch
 
-from utils.obj import write_obj
-
-
 class SaverMixin():
     @property
     def save_dir(self):
