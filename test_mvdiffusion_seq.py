@@ -293,6 +293,7 @@ def main(
                     'validation',
                     cfg.save_dir
                     )
+    torch.cuda.empty_cache()
     
 def get_views(num_views):
     VIEWS = []
